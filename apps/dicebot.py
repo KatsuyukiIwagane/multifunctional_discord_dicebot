@@ -52,6 +52,7 @@ def roll_dice(num_of_dice, num_of_faces):
 
 # ロールコマンドの実装
 @tree.command(name="dice_roll", description="ダイスと気がふれるぜ")
+@app_commands.describe(roll="ロールを入力。()演算は非対応")
 async def dice_roll_command(interaction: discord.Interaction, roll: str):
     # メッセージ送信者がボットの場合は無視する
     if interaction.user.bot:
@@ -152,6 +153,36 @@ async def dice_roll_command(interaction: discord.Interaction, roll: str):
         elements_of_roll.clear()
         result_of_roll_show.clear()
         result_of_roll_calc.clear()
+
+
+
+# チョイスコマンドの実装
+@tree.command(name="choice_roll", description="神よりせんたくをするぜ")
+@app_commands.describe(choices="選択肢を空白かカンマで区切って入力", times="選択肢を選ぶ回数")
+async def choice_command(interaction: discord.Interaction, choices: str, times: int = 1):
+    if interaction.user.bot:
+        return
+
+    print("チョイスコマンドが実行されました")
+    send_message = ""
+    try:
+        choices_list = choices.split(',')
+        if len(choices_list) == 1:
+            choices_list = choices.split(' ')
+        else:
+            choices_list = choices.replace(' ', '').split(',')
+        print(choices_list)
+        for i in range(times):
+            selected_choice = random.choice(choices_list)
+            send_message += f"[{selected_choice}] "
+        await interaction.response.send_message(f"{send_message}")
+    except Exception as e:
+        await interaction.response.send_message("選択肢の形式が正しくありません。")
+        print(e)
+
+# @tree.command(name="name_roll", description="give you a name")
+# @app_commands.describe(style="和洋を選択", fol="苗字か名前を選択")
+# async def name_command(interaction: discord.Interaction, style: str = "和", fol: str = "苗字"):
 
         
 client.run(DISCORD_TOKEN)
