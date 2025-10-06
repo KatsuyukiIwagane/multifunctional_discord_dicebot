@@ -1,4 +1,6 @@
 import discord
+from discord import app_commands
+from discord.ext import commands
 import os
 from dotenv import load_dotenv
 import random
@@ -9,11 +11,13 @@ DISCORD_TOKEN = os.getenv('dicebot_token')
 
 # bot起動時の設定
 client = discord.Client(intents=discord.Intents.all())
+tree = app_commands.CommandTree(client)
 
 # bot起動時の処理
 @client.event
 async def on_ready():
     print('ログインしました')
+    await tree.sync()
 
 # # メッセージ受信時の処理
 # @client.event
@@ -47,19 +51,19 @@ def roll_dice(num_of_dice, num_of_faces):
     return results
 
 # ロールコマンドの実装
-@client.event
-async def on_message(message):
+@tree.command(name="dice_roll", description="ダイスと気がふれるぜ")
+async def dice_roll_command(interaction: discord.Interaction, roll: str):
     # メッセージ送信者がボットの場合は無視する
-    if message.author.bot:
+    if interaction.user.bot:
         return
-    
-    # メッセージが"!roll"で始まる場合、ロールコマンドを実行する
-    if message.content.startswith('>roll'):
-        print("ロールコマンドが実行されました")
-        # メッセージからロールの内容を取得する
-        roll_command = message.content[len('!roll'):].strip()
-        roll_command = roll_command.replace(' ', '')
-        # ロールの内容を解析
+
+    print("ロールコマンドが実行されました")
+    # メッセージからロールの内容を取得する
+    roll_command = roll
+    roll_command = roll_command.replace(' ', '')
+    print(roll_command)
+    # ロールの内容を解析
+    try:
         for i in range(len(roll_command)):
             if roll_command[i] == 'd':
                 index_of_d.append(i)
@@ -107,19 +111,29 @@ async def on_message(message):
                 show_message += result_of_roll_show[i]
             else:
                 show_message += f" {list_of_operator[i-1]} {result_of_roll_show[i]}"
-        show_message += f" => {final_result}"
         print(show_message)
 
         # 結果を送信
-        await message.channel.send(f"[{show_message}] => {final_result}")
+        await interaction.response.send_message(f"[{show_message}] => {final_result}")
+
+        # 要素のリセット
         index_of_d.clear()
         index_of_operator.clear()
         list_of_operator.clear()
         elements_of_roll.clear()
         result_of_roll_show.clear()
         result_of_roll_calc.clear()
+    except Exception as e:
+        await interaction.response.send_message("ロールコマンドの形式が正しくありません。")
+        print(e)
 
-        # 計算結果を表示
+        # 要素のリセット
+        index_of_d.clear()
+        index_of_operator.clear()
+        list_of_operator.clear()
+        elements_of_roll.clear()
+        result_of_roll_show.clear()
+        result_of_roll_calc.clear()
 
         
 client.run(DISCORD_TOKEN)
