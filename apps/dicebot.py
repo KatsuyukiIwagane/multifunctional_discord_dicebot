@@ -60,7 +60,25 @@ async def dice_roll_command(interaction: discord.Interaction, roll: str):
     print("ロールコマンドが実行されました")
     # メッセージからロールの内容を取得する
     roll_command = roll
+
+    # ロールコマンドの前処理
     roll_command = roll_command.replace(' ', '')
+    roll_command = roll_command.replace('　', '')
+    roll_command = roll_command.replace('D', 'd')
+    roll_command = roll_command.replace('Ｄ', 'd')
+    roll_command = roll_command.replace('ｄ', 'd')
+    roll_command = roll_command.replace('＊', '*')
+    roll_command = roll_command.replace('／', '/')
+    roll_command = roll_command.replace('＋', '+')
+    roll_command = roll_command.replace('－', '-')
+    roll_command = roll_command.replace('−', '-')
+    roll_command = roll_command.replace('·', '*')
+    roll_command = roll_command.replace('・', '*')
+    roll_command = roll_command.replace('﹡', '*')
+    roll_command = roll_command.replace('⁎', '*')
+    roll_command = roll_command.replace('x', '*')
+    roll_command = roll_command.replace('×', '*')
+    roll_command = roll_command.replace('÷', '/')
     print(roll_command)
     # ロールの内容を解析
     try:
