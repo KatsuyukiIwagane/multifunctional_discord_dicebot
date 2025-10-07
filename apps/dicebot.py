@@ -52,8 +52,8 @@ def roll_dice(num_of_dice, num_of_faces):
 
 # ロールコマンドの実装
 @tree.command(name="dice_roll", description="ダイスと気がふれるぜ")
-@app_commands.describe(roll="ロールを入力。()演算は非対応")
-async def dice_roll_command(interaction: discord.Interaction, roll: str):
+@app_commands.describe(roll="ロールを入力。()演算は非対応", than="上方下方判定", target="目標値")
+async def dice_roll_command(interaction: discord.Interaction, roll: str, than: str = None, target: str = None):
     # メッセージ送信者がボットの場合は無視する
     if interaction.user.bot:
         return
@@ -131,6 +131,85 @@ async def dice_roll_command(interaction: discord.Interaction, roll: str):
             else:
                 show_message += f" {list_of_operator[i-1]} {result_of_roll_show[i]}"
         print(show_message)
+
+        # 上方下方判定の処理
+        if than != None and target != None:
+            try:
+                target = int(target)
+            except:
+                target = target.replace(' ', '').replace('　', '').replace('＋', '+').replace('－', '-').replace('−', '-').replace('＊', '*').replace('／', '/').replace('·', '*').replace('・', '*').replace('﹡', '*').replace('⁎', '*').replace('x', '*').replace('×', '*').replace('÷', '/').replace('D', 'd').replace('Ｄ', 'd').replace('ｄ', 'd')
+                if 'd' in target:
+
+                    index_of_d.clear()
+                    index_of_operator.clear()
+                    list_of_operator.clear()
+                    elements_of_roll.clear()
+                    result_of_roll_show.clear()
+                    result_of_roll_calc.clear()
+
+                    for i in range(len(target)):
+                        if target[i] == 'd':
+                            index_of_d.append(i)
+                        elif target[i] == '+' or target[i] == '-' or target[i] == '*' or target[i] == '/':
+                            index_of_operator.append(i)
+                            list_of_operator.append(target[i])
+                        
+                    if index_of_operator != []:
+                        for i in range(len(index_of_operator)):
+                            if i == 0:
+                                elements_of_roll.append(target[0:index_of_operator[i]])
+                            else:
+                                elements_of_roll.append(target[index_of_operator[i-1]+1:index_of_operator[i]])
+                        elements_of_roll.append(target[index_of_operator[-1]+1:])
+                    else:
+                        elements_of_roll.append(target)
+                    print(elements_of_roll)
+                    for element in elements_of_roll:
+                        if 'd' in element:
+                            num_of_dice = int(element[0:element.index('d')]) if element[0:element.index('d')] != '' else 1
+                            num_of_faces = int(element[element.index('d')+1:])
+                            roll_results = roll_dice(num_of_dice, num_of_faces)
+                            result_of_roll_calc.append(sum(roll_results))
+                        else:
+                            result_of_roll_calc.append(int(element))
+                    print(result_of_roll_calc)
+
+                    calculation_expression = str(result_of_roll_calc[0])
+                    for i in range(len(list_of_operator)):
+                        calculation_expression += f" {list_of_operator[i]} {result_of_roll_calc[i+1]}"
+                    print(calculation_expression)
+                    target = eval(calculation_expression)
+                    print(target)
+
+                else:
+                    target = eval(target)
+
+        if than in ['>', '<', '>=', '<=', '≧', '≦', '=']:
+            if than == '>':
+                if final_result > target:
+                    final_result = f"{final_result} > {target} => 成功"
+                else:
+                    final_result = f"{final_result} > {target} => 失敗"
+            elif than == '<':
+                if final_result < target:
+                    final_result = f"{final_result} < {target} => 成功"
+                else:
+                    final_result = f"{final_result} < {target} => 失敗"
+            elif than =='>=' or than == '≧':
+                if final_result >= target:
+                    final_result = f"{final_result} >= {target} => 成功"
+                else:
+                    final_result = f"{final_result} >= {target} => 失敗"
+            elif than == '<=' or than == '≦':
+                if final_result <= target:
+                    final_result = f"{final_result} <= {target} => 成功"
+                else:
+                    final_result = f"{final_result} <= {target} => 失敗"
+            elif than == '=':
+                if final_result == target:
+                    final_result = f"{final_result} = {target} => 成功"
+                else:
+                    final_result = f"{final_result} = {target} => 失敗"
 
         # 結果を送信
         await interaction.response.send_message(f"[{show_message}] => {final_result}")
